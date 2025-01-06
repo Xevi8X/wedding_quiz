@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jak dobrze znasz Młodą Parę?</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      text-align: center;
+      background: rgb(213,0,252);
+      background: radial-gradient(circle, rgba(213,0,252,1) 0%, rgba(25,18,162,1) 100%);
+      color: white;
+    }
+    h1 {
+      text-align: center;
+      font-size: 5em;
+      margin-top: 30px;
+      margin-bottom: 30px;
+    }
+    .container {
+      display: inline-block;
+      width: 90%;
+      padding: 20px;
+      background: #333;
+      border: 5px solid #111;
+      border-radius: 10px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    .container-header {
+      font-size: 3em;
+      font-style: italic;
+      margin-bottom: 10px;
+    }
+    .container-content {
+      font-size: 4em;
+      color: #f9f9f9;
+      margin-bottom: 10px;
+    }
+    .container-footer {
+      font-size: 3em;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    .answers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 50px;
+      list-style: none;
+      padding: 0;
+      margin: 20px auto;
+      width: 92%;
+    }
+    .answers li {
+      padding: 60px;
+      background: #333;
+      border: 5px solid #111;
+      border-radius: 10px;
+      font-size: 4em;
+      cursor: default;
+    }
+    .answers li.answers-correct {
+      background: #0f0 !important;
+      border: 5px solid #f9f9f9;
+      color: #000;
+    }
+    .timer-container {
+      display: inline-block;
+      width: 80%;
+      padding: 20px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .spinner {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto;
+    }
+    .spinner .circle {
+      width: 100px;
+      height: 100px;
+      border: 5px solid #ccc;
+      border-top: 5px solid #333;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .spinner .text {
+      position: absolute;
+
+      top: 50%;
+      left: 50%;
+      transform: translate(-40%, -40%);
+      font-size: 3em;
+      color: #f9f9f9;
+      animation: none;
+    }
+    .hidden {
+      display: none;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>JAK DOBRZE ZNASZ MŁODĄ PARĘ?</h1>
+  <div class="container">
+    <div class="container-header" id="question-header">Pytanie</div>
+    <div class="container-content" id="question">   </div>
+    <div class="container-footer">...</div>
+  </div>
+  <ul class="answers" id="answers"></ul>
+  <div class="container">
+    <div class="container-header">Stoliki</div>
+    <div class="container-content" id="tables"></div>
+  </div>
+  <div class="timer-container">
+    <div id="timer" class="spinner hidden">
+      <div class="circle"></div>
+      <div class="text" id="timer-text"></div>
+    </div>
+  </div>
+
+  <script>
+    const mockData = {
+      "version": 1,
+      "question": {
+        "all": 10,
+        "current": 3,
+        "value": 2500,
+        "content": "Jak wabi się kotka Panny Młodej?"
+      },
+      "answers": {
+        "correct": 1,
+        "content": [
+          "Tesla",
+          "Sonia",
+          "Zora",
+          "Iskra"
+        ]
+      },
+      "timer": {
+        "answer_time": 10,
+        "left": 1
+      },
+      "tables": {
+        "all": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "answered": [
+          2,
+          3,
+          5,
+          9
+        ]
+      }
+    };
+
+    function updateQuiz(data) {
+      // Update question
+      const questionHeaderEl = document.getElementById('question-header');
+      questionHeaderEl.textContent = `Pytanie ${data.question.current} z ${data.question.all}`;
+
+      const questionEl = document.getElementById('question');
+      questionEl.textContent = data.question.content;
+
+      const questionFooterEl = document.querySelector('.container-footer');
+      questionFooterEl.textContent = `${data.question.value} zł`;
+
+      // Update answers
+      const answersEl = document.getElementById('answers');
+      answersEl.innerHTML = '';
+      data.answers.content.forEach((answer, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<b style="color: gold;">${String.fromCharCode(65 + index)}.</b> ${answer}`;
+        if (data.answers.correct && index === data.answers.correct-1) {
+            li.classList.add('answers-correct');
+        }
+        answersEl.appendChild(li);
+      });
+
+      // Update tables
+      const tablesEl = document.getElementById('tables');
+      const answeredSet = new Set(data.tables.answered);
+      tablesEl.innerHTML = data.tables.all
+        .map(table => answeredSet.has(table) ? `<b style="color: gold;">${table}</b>` : table)
+        .join(', ');
+
+          // Update timer spinner
+      const timerEl = document.getElementById('timer');
+      const timerTextEl = document.getElementById('timer-text');
+      if (data.timer.left > 0) {
+        timerEl.classList.remove('hidden');
+        timerTextEl.textContent = data.timer.left;
+      } else {
+        timerEl.classList.add('hidden');
+        timerTextEl.textContent = '';
+      }
+    }
+
+    // Load mock data immediately
+    updateQuiz(mockData);
+  </script>
+</body>
+</html>

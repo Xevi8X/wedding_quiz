@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "question": {
+    "all": 10,
+    "current": 3,
+    "value": 2500,
+    "content": "Jak wabi się kotka Panny Młodej?"
+  },
+  "answers": {
+    "correct": 2,
+    "content": [
+      "Tesla",
+      "Sonia",
+      "Zora",
+      "Iskra"
+    ]
+  },
+  "timer": {
+    "answer_time": 10,
+    "left": 4
+  },
+  "tables": {
+    "all": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "answered": [
+      2,
+      3,
+      5,
+      9
+    ]
+  }
+}
