@@ -7,7 +7,7 @@
     "content": "Jak wabi się kotka Panny Młodej?"
   },
   "answers": {
-    "correct": 2,
+    "correct": 1,
     "content": [
       "Tesla",
       "Sonia",
@@ -17,7 +17,7 @@
   },
   "timer": {
     "answer_time": 10,
-    "left": 4
+    "left": 1
   },
   "tables": {
     "all": [
