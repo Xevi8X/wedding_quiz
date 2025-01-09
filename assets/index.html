@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jak dobrze znasz Młodą Parę?</title>
     <style>
+      html, body {
+      height: 100%;
+      overflow: hidden;
+      }
+
       body {
         font-family: Arial, sans-serif;
         margin: 40px;
@@ -21,6 +26,14 @@
         margin-bottom: 30px;
       }
 
+      .page {
+        display: none;
+      }
+
+      .page.active {
+        display: block;
+      }
+
       .container {
         display: inline-block;
         width: 90%;
@@ -30,6 +43,11 @@
         border-radius: 10px;
         margin-top: 20px;
         margin-bottom: 20px;
+      }
+
+      .container.light {
+        background: rgba(211, 211, 211, 0.15);
+        border: none;
       }
 
       .container-header {
@@ -127,25 +145,74 @@
           transform: rotate(360deg);
         }
       }
+
+      .leaderboard {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: center;
+        height: 80%;
+        width: 60%;
+        margin: 0 auto;
+      }
+
+      .leaderboard-li {
+        margin: 60px 30vh;
+        padding: 20px;
+        border-radius: 20px;
+        font-size: 1em;
+        cursor: default;
+        text-align: center;
+        height: 12vh;
+      }
+
     </style>
   </head>
 
   <body>
-    <h1>JAK DOBRZE ZNASZ MŁODĄ PARĘ?</h1>
-    <div class="container">
-      <div class="container-header" id="question-header">Pytanie</div>
-      <div class="container-content" id="question"> </div>
-      <div class="container-footer">...</div>
+    <div id="welcome_page" class="page active">
+      <div style="display: flex; align-items: center; justify-content: center; height: 100vh;">
+        <h1>JAK DOBRZE ZNASZ MŁODĄ PARĘ?</h1>
+      </div>
     </div>
-    <ul class="answers" id="answers"></ul>
-    <div class="container">
-      <div class="container-header">Stoliki</div>
-      <div class="container-content" id="tables"></div>
+    <div id="question_page" class="page">
+      <h1>JAK DOBRZE ZNASZ MŁODĄ PARĘ?</h1>
+      <div class="container">
+        <div class="container-header" id="question-header">Pytanie</div>
+        <div class="container-content" id="question"> </div>
+        <div class="container-footer">...</div>
+      </div>
+      <ul class="answers" id="answers"></ul>
+      <div class="container">
+        <div class="container-header">Stoliki</div>
+        <div class="container-content" id="tables"></div>
+      </div>
+      <div class="timer-container">
+        <div id="timer" class="spinner hidden">
+          <div class="circle"></div>
+          <div class="text" id="timer-text"></div>
+        </div>
+      </div>
     </div>
-    <div class="timer-container">
-      <div id="timer" class="spinner hidden">
-        <div class="circle"></div>
-        <div class="text" id="timer-text"></div>
+    <div id="leaderboard_page" class="page">
+      <h1>JAK DOBRZE ZNASZ MŁODĄ PARĘ?</h1>
+      <div class="container light" style="height:70vh;">
+        <div class="container-header" id="leaderboard-header">Wyniki</div>
+        <div class="container-content">
+          <div class="leaderboard"></div>
+          <div class="leaderboard-li" id="first-place" style="background: linear-gradient(145deg, #af8f3c, #dab864);">
+            <div>I miejsce</div>
+            <div></div>
+          </div>
+          <div class="leaderboard-li" id="second-place" style="background: linear-gradient(145deg, #c0c0c0, #cfcfcf);">
+            <div>II miejsce</div>
+            <div></div>
+          </div>
+          <div class="leaderboard-li" id="third-place" style="background: linear-gradient(145deg, #8d5228, #a16041);">
+            <div>III miejsce</div>
+            <div></div>
+          </div>
+        </div>
       </div>
     </div>
   </body>
@@ -153,34 +220,14 @@
   <script>
     const emptyData = {
       "version": -1,
-      "question": {
-        "all": 0,
-        "current": 0,
-        "value": 0,
-        "content": "Loading..."
-      },
-      "answers": {
-        "correct": 0,
-        "content": [
-          "A",
-          "B",
-          "C",
-          "D"
-        ]
-      },
-      "timer": {
-        "answer_time": 10,
-        "left": 0
-      },
-      "tables": {
-        "all": [],
-        "answered": []
-      }
+      "page": "welcome_page",
     };
+
+    current_page = 'welcome_page';
 
     async function fetchData() {
       try {
-        const response = await fetch('/state');
+        const response = await fetch('/status');
         if (!response.ok) {
           throw new Error('Response was not ok');
         }
@@ -191,8 +238,19 @@
       }
     }
 
-    function updateQuiz(data) {
-      // Update question
+    function check_page_update(data) {
+      if (data.page !== current_page) {
+        current_page = data.page;
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(page => page.classList.remove('active'));
+        const activePage = document.getElementById(current_page);
+        if (activePage) {
+          activePage.classList.add('active');
+        }
+      }
+    }
+
+    function update_question_page(data) {
       const questionHeaderEl = document.getElementById('question-header');
       questionHeaderEl.textContent = `Pytanie ${data.question.current} z ${data.question.all}`;
 
@@ -202,7 +260,6 @@
       const questionFooterEl = document.querySelector('.container-footer');
       questionFooterEl.textContent = `${data.question.value} zł`;
 
-      // Update answers
       const answersEl = document.getElementById('answers');
       answersEl.innerHTML = '';
       data.answers.content.forEach((answer, index) => {
@@ -214,14 +271,12 @@
         answersEl.appendChild(li);
       });
 
-      // Update tables
       const tablesEl = document.getElementById('tables');
       const answeredSet = new Set(data.tables.answered);
       tablesEl.innerHTML = data.tables.all
         .map(table => answeredSet.has(table) ? `<b style="color: gold;">${table}</b>` : table)
         .join(', ');
 
-      // Update timer spinner
       const timerEl = document.getElementById('timer');
       const timerTextEl = document.getElementById('timer-text');
       if (data.timer.left > 0) {
@@ -233,9 +288,51 @@
       }
     }
 
+    function set_leaderboard_elem(elem, data) {
+      elem.children[1].textContent = `${data.total} zł` + ` - ` + `${data.tables.join(', ')}`;
+    }
+
+    function update_leaderboard_page(data) {
+      
+      const leaderboardItems = document.querySelectorAll('.leaderboard-li');
+      leaderboardItems.forEach(item => item.classList.add('hidden'));
+
+      const firstPlaceEl = document.getElementById('first-place');
+      set_leaderboard_elem(firstPlaceEl, data.places[0]);
+      if (data.first_visible > 0 && data.first_visible <= 1) {
+        firstPlaceEl.classList.remove('hidden');
+      }
+
+      const secondPlaceEl = document.getElementById('second-place');
+      set_leaderboard_elem(secondPlaceEl, data.places[1]);
+      if (data.first_visible > 0 && data.first_visible <= 2) {
+        secondPlaceEl.classList.remove('hidden');
+      }
+
+      const thirdPlaceEl = document.getElementById('third-place');
+      set_leaderboard_elem(thirdPlaceEl, data.places[2]);
+      if (data.first_visible > 0 && data.first_visible <= 3) {
+        thirdPlaceEl.classList.remove('hidden');
+      }
+    }
+
+    function update(data) {
+      check_page_update(data);
+      switch (current_page) {
+        case 'welcome_page':
+          break;
+        case 'question_page':
+          update_question_page(data.question_data);
+          break;
+        case 'leaderboard_page':
+          update_leaderboard_page(data.leaderboard_data);
+          break;
+      }
+    }
+
     setInterval(async () => {
       const data = await fetchData();
-      updateQuiz(data);
+      update(data);
     }, 500);
   </script>
 </html>

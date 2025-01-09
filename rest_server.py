@@ -15,7 +15,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         with open(self.server.config['root_html'], 'r', encoding='utf-8') as file:
             self.wfile.write(file.read().encode('utf-8'))
 
-    def get_state(self):
+    def get_status(self):
         self.send_response(200)
         self.send_header('Content-type', 'application/json; charset=UTF-8')
         self.end_headers()
@@ -31,7 +31,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         get_routes = {
             '/': self.get_root,
             '/index.html': self.get_root,
-            '/state': self.get_state
+            '/status': self.get_status
         }
         try:
             get_routes[self.path]()
